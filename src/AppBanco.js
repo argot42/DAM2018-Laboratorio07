@@ -5,22 +5,63 @@ export default class AppBanco extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            moneda:1,
-            capitalInicial:0,
-            capitalFinal:0,
+            moneda: 1,
+            capitalInicial: '0',
+            capitalFinal: 0,
 
             swAvisarEmail: false,
             chkCondiciones: false,
             tiEmail: 'foobar@example.org',
             tiCUIT: '00-00000000-0',
-            tiMonto: '0',
-            sDias: 10
+            sDias: 10,
+            tResultados: ''
         };
+
         this.hacerPlazoFijo = this.hacerPlazoFijo.bind(this);
+        this.checkBoxChange = this.checkBoxChange.bind(this);
     }
 
     hacerPlazoFijo() {
-        ToastAndroid.show('Presiono el boton de hacer plazo fijo!', ToastAndroid.LONG);
+        var coin = "";
+        if (this.state.moneda == 1) {
+            coin = "USD";
+        } else if (this.state.moneda == 2) {
+            coin = "ARS";
+        }
+
+        var m = parseFloat(this.state.capitalInicial);
+        var tasa = 0.0;
+        if (this.state.sDias < 30) {
+            if (m <= 5000) { tasa = 25.0; }
+            else if (m > 5000 && m <= 99999) { tasa = 30.0; }
+            else if (m > 99999) { tasa = 35.0; }
+
+        } else if (this.state.sDias >= 30) {
+            if (m <= 5000) { tasa = 27.5; }
+            else if (m > 5000 && m <= 99999) { tasa = 32.3; }
+            else if (m > 99999) { tasa = 38.5; }
+
+        }
+
+        var final = m * ( (Math.pow((1 + tasa/100), this.state.sDias/360)) - 1 )
+        this.setState({ capitalFinal: final });
+
+        this.setState({
+            //tResultados: "Capital Inicial: " + this.state.capitalInicial + " -> " + "Capital Final: " + this.state.capitalFinal.toString()
+            tResultados: "coin: " + coin + "\n" + 
+            "inicial: " + this.state.capitalInicial + "\n" + 
+            "final: " + final.toString() + "\n" + 
+            "tasa: " + tasa + "\n" +
+            "dias: " + this.state.sDias + "\n"
+        });
+    }
+
+    checkBoxChange() {
+        this.setState({chkCondiciones: !this.state.chkCondiciones});
+        if (this.state.chkCondiciones) {
+            ToastAndroid.show('Es obligatorio aceptar las condiciones', ToastAndroid.LONG);
+            this.setState({tResultados: ''});
+        }
     }
 
     render() {
@@ -46,8 +87,8 @@ export default class AppBanco extends Component {
                 </Picker>
                 <Text>Monto</Text>
                 <TextInput
-                    onChangeText={(text) => this.setState({tiMonto:text})}
-                    value={this.state.tiMonto}
+                    onChangeText={(text) => this.setState({capitalInicial:text})}
+                    value={this.state.capitalInicial}
                 />
                 <Text>Dias</Text>
                 <Slider
@@ -59,20 +100,21 @@ export default class AppBanco extends Component {
                 />
                 <Text>{this.state.sDias}{" dias"}</Text>
                 <Switch
-                    onValueChange={(value) => this.setState({swAvisarEmail: !this.state.swAvisarEmail})}
+                    onValueChange={() => this.setState({swAvisarEmail: !this.state.swAvisarEmail})}
                     value={this.state.swAvisarEmail}
                 />
                 <Text>Avisar por mail</Text>
                 <CheckBox 
                     title='Acepto condiciones'
                     value={this.state.chkCondiciones}
-                    onChange={(value) => this.setState({chkCondiciones: !this.state.chkCondiciones})}
+                    onChange={this.checkBoxChange}
                 />
-                <Button title="Hacer Plazo Fijo"
-                    color="#FF0000"
+                <Button 
+                    title="Hacer Plazo Fijo"
+                    disabled={!this.state.chkCondiciones}
                     onPress={this.hacerPlazoFijo}>
                 </Button>
-                <Text>[[ RESULTADO DE LA OPERACION ]]</Text>
+                <Text>{this.state.tResultados}</Text>
             </View>
         );
     }
