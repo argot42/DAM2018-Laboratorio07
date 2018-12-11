@@ -7,7 +7,14 @@ export default class AppBanco extends Component {
         this.state = {
             moneda:1,
             capitalInicial:0,
-            capitalFinal:0
+            capitalFinal:0,
+
+            swAvisarEmail: false,
+            chkCondiciones: false,
+            tiEmail: 'foobar@example.org',
+            tiCUIT: '00-00000000-0',
+            tiMonto: '0',
+            sDias: 10
         };
         this.hacerPlazoFijo = this.hacerPlazoFijo.bind(this);
     }
@@ -20,9 +27,15 @@ export default class AppBanco extends Component {
         return (
             <View style={styles.container}>
                 <Text>Correo Electronico</Text>
-                <TextInput>correo@mail.com</TextInput>
+                <TextInput
+                    onChangeText={(text) => this.setState({tiEmail:text})}
+                    value={this.state.tiEmail}
+                />
                 <Text>CUIT</Text>
-                <TextInput>00-00000000-0</TextInput>
+                <TextInput
+                    onChangeText={(text) => this.setState({tiCUIT:text})}
+                    value={this.state.tiCUIT}
+                />
                 <Text>Moneda</Text>
                 <Picker
                     style={{width: 200}}
@@ -32,13 +45,29 @@ export default class AppBanco extends Component {
                     <Picker.Item label="Pesos ARS" value="2" />
                 </Picker>
                 <Text>Monto</Text>
-                <TextInput>000</TextInput>
+                <TextInput
+                    onChangeText={(text) => this.setState({tiMonto:text})}
+                    value={this.state.tiMonto}
+                />
                 <Text>Dias</Text>
-                <Slider></Slider>
-                <Text>10 dias</Text>
-                <Switch></Switch>
+                <Slider
+                    minimumValue={1}
+                    maximumValue={180}
+                    onValueChange={(days) => this.setState({sDias:days})}
+                    step={1}
+                    value={this.state.sDias}
+                />
+                <Text>{this.state.sDias}{" dias"}</Text>
+                <Switch
+                    onValueChange={(value) => this.setState({swAvisarEmail: !this.state.swAvisarEmail})}
+                    value={this.state.swAvisarEmail}
+                />
                 <Text>Avisar por mail</Text>
-                <CheckBox title='Acepto condiciones'/>
+                <CheckBox 
+                    title='Acepto condiciones'
+                    value={this.state.chkCondiciones}
+                    onChange={(value) => this.setState({chkCondiciones: !this.state.chkCondiciones})}
+                />
                 <Button title="Hacer Plazo Fijo"
                     color="#FF0000"
                     onPress={this.hacerPlazoFijo}>
