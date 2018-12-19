@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {ToastAndroid,Button, StyleSheet, Text, TextInput, Picker, View, Switch, CheckBox, Slider} from 'react-native';
+import {ToastAndroid,Button, StyleSheet, Text, TextInput, Picker, View, Switch, CheckBox, Slider, ScrollView} from 'react-native';
 
 export default class AppBanco extends Component {
     constructor(props) {
@@ -14,14 +14,16 @@ export default class AppBanco extends Component {
             tiEmail: 'foobar@example.org',
             tiCUIT: '00-00000000-0',
             sDias: 10,
-            tResultados: ''
+            tResultados: '',
+            tIntereses: ''
         };
 
         this.hacerPlazoFijo = this.hacerPlazoFijo.bind(this);
         this.checkBoxChange = this.checkBoxChange.bind(this);
+        this.interesesUpdate = this.interesesUpdate.bind(this);
     }
 
-    hacerPlazoFijo() {
+    interesesUpdate() {
         var coin = "";
         if (this.state.moneda == 1) {
             coin = "USD";
@@ -40,20 +42,46 @@ export default class AppBanco extends Component {
             if (m <= 5000) { tasa = 27.5; }
             else if (m > 5000 && m <= 99999) { tasa = 32.3; }
             else if (m > 99999) { tasa = 38.5; }
-
         }
 
-        var final = m * ( (Math.pow((1 + tasa/100), this.state.sDias/360)) - 1 )
-        this.setState({ capitalFinal: final });
+        this.setState(
+            { capitalFinal: m * ( (Math.pow((1 + tasa/100), this.state.sDias/360)) - 1 ) },
+            () => { this.setState({ tIntereses: this.state.capitalFinal + " " + coin }); }
+        );
+    }
 
-        this.setState({
-            //tResultados: "Capital Inicial: " + this.state.capitalInicial + " -> " + "Capital Final: " + this.state.capitalFinal.toString()
-            tResultados: "coin: " + coin + "\n" + 
-            "inicial: " + this.state.capitalInicial + "\n" + 
-            "final: " + final.toString() + "\n" + 
-            "tasa: " + tasa + "\n" +
-            "dias: " + this.state.sDias + "\n"
-        });
+    hacerPlazoFijo() {
+        var err = [];
+        if (!this.state.tiEmail || !this.state.tiEmail.replace(/\s+/g, '')) {
+            err.push("El campo Email es obligatorio");
+        }
+        if (!this.state.tiCUIT || !this.state.tiCUIT.replace(/\s+/g, '')) {
+            err.push("El campo CUIT es obligatorio");
+        }
+        if (!this.state.moneda || this.state.moneda < 1 || this.state.moneda > 2) {
+            err.push("El campo Moneda es incorrecto");
+        }
+        if (!this.state.capitalInicial || parseFloat(this.state.capitalInicial) <= 0) {
+            err.push("El campo Monto debe ser mayor a 0");
+        }
+
+        var print_msg = "";
+
+        if (err.length != 0) {
+            print_msg = "Error al generar plazo fijo\n";
+            for (var i=0; i<err.length; i++) { print_msg = print_msg + err[i] + "\n"; }
+
+        } else {
+            print_msg = "Plazo fijo Realizado!\nInfo:\n" +
+                "Capital Inicial: " + this.state.capitalInicial + "\n" + 
+                "Capital Final: " + this.state.capitalFinal.toString() + "\n" +
+                "Email: " + this.state.tiEmail + "\n" +
+                "CUIT: " + this.state.tiCUIT + "\n" +
+                "Moneda: " + this.state.moneda + "\n" +
+                "Dias: " + this.state.sDias.toString() + "\n";
+        }
+
+        this.setState({ tResultados: print_msg });
     }
 
     checkBoxChange() {
@@ -66,76 +94,78 @@ export default class AppBanco extends Component {
 
     render() {
         return (
-            <View style={styles.container}>
-                <Text>Correo Electronico</Text>
-                <TextInput
-                    onChangeText={(text) => this.setState({tiEmail:text})}
-                    value={this.state.tiEmail}
-                />
-                <Text>CUIT</Text>
-                <TextInput
-                    onChangeText={(text) => this.setState({tiCUIT:text})}
-                    value={this.state.tiCUIT}
-                />
-                <Text>Moneda</Text>
-                <Picker
-                    style={{width: 200}}
-                    selectedValue={this.state.moneda}
-                    onValueChange={(valor) => this.setState({moneda:valor})}>
-                    <Picker.Item label="Dolar" value="1" />
-                    <Picker.Item label="Pesos ARS" value="2" />
-                </Picker>
-                <Text>Monto</Text>
-                <TextInput
-                    onChangeText={(text) => this.setState({capitalInicial:text})}
-                    value={this.state.capitalInicial}
-                />
-                <Text>Dias</Text>
-                <Slider
-                    minimumValue={1}
-                    maximumValue={180}
-                    onValueChange={(days) => this.setState({sDias:days})}
-                    step={1}
-                    value={this.state.sDias}
-                />
-                <Text>{this.state.sDias}{" dias"}</Text>
-                <Switch
-                    onValueChange={() => this.setState({swAvisarEmail: !this.state.swAvisarEmail})}
-                    value={this.state.swAvisarEmail}
-                />
-                <Text>Avisar por mail</Text>
-                <CheckBox 
-                    title='Acepto condiciones'
-                    value={this.state.chkCondiciones}
-                    onChange={this.checkBoxChange}
-                />
-                <Button 
-                    title="Hacer Plazo Fijo"
-                    disabled={!this.state.chkCondiciones}
-                    onPress={this.hacerPlazoFijo}>
-                </Button>
-                <Text>{this.state.tResultados}</Text>
+            <View>
+                <ScrollView>
+                    <Text>Correo Electronico</Text>
+                    <TextInput
+                        onChangeText={(text) => this.setState({tiEmail:text})}
+                        value={this.state.tiEmail}
+                    />
+                    <Text>CUIT</Text>
+                    <TextInput
+                        onChangeText={(text) => this.setState({tiCUIT:text})}
+                        value={this.state.tiCUIT}
+                    />
+                    <Text>Moneda</Text>
+                    <Picker
+                        style={{width: 200}}
+                        selectedValue={this.state.moneda}
+                        onValueChange={(valor) => this.setState(
+                            {moneda:valor},
+                            () => { this.interesesUpdate(); }
+                        )}>
+                        <Picker.Item label="Dolar" value="1" />
+                        <Picker.Item label="Pesos ARS" value="2" />
+                    </Picker>
+                    <Text>Monto</Text>
+                    <TextInput
+                        onChangeText={(text) => this.setState(
+                            {capitalInicial:text},
+                            () => { this.interesesUpdate(); }
+                        )}
+                        value={this.state.capitalInicial}
+                    />
+                    <Text>Dias</Text>
+                    <Slider
+                        minimumValue={1}
+                        maximumValue={180}
+                        onValueChange={(days) => this.setState(
+                            {sDias:days},
+                            () => { this.interesesUpdate(); }
+                        )}
+                        step={1}
+                        value={this.state.sDias}
+                    />
+                    <Text>{this.state.sDias}{" días de plazo"}</Text>
+                    <Text>{this.state.tIntereses}</Text>
+                    <View style={styles.firstComponent}>
+                        <Text>Avisar por mail</Text>
+                        <Switch
+                            onValueChange={() => this.setState({swAvisarEmail: !this.state.swAvisarEmail})}
+                            value={this.state.swAvisarEmail}
+                        />
+                    </View>
+                    <CheckBox 
+                        title='Acepto condiciones'
+                        value={this.state.chkCondiciones}
+                        onChange={this.checkBoxChange}
+                    />
+                    <Button 
+                        title="Hacer Plazo Fijo"
+                        disabled={!this.state.chkCondiciones}
+                        onPress={this.hacerPlazoFijo}>
+                    </Button>
+                    <Text>{this.state.tResultados}</Text>
+                </ScrollView>
             </View>
         );
     }
 }
 
-const styles = StyleSheet.create({
-    container: {
+var styles = StyleSheet.create({
+    firstComponent: {
         flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
-        backgroundColor: '#F5FCFF',
-    },
-    welcome: {
-        fontSize: 20,
-        textAlign: 'center',
-        margin: 10,
-    },
-    instructions: {
-        textAlign: 'center',
-        color: '#333333',
-        marginBottom: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 });
