@@ -15,7 +15,7 @@ export default class AppBanco extends Component {
             tiCUIT: '00-00000000-0',
             sDias: 10,
             tResultados: '',
-            tIntereses: ''
+            tIntereses: '0 USD'
         };
 
         this.hacerPlazoFijo = this.hacerPlazoFijo.bind(this);
@@ -72,13 +72,14 @@ export default class AppBanco extends Component {
             for (var i=0; i<err.length; i++) { print_msg = print_msg + err[i] + "\n"; }
 
         } else {
-            print_msg = "Plazo fijo Realizado!\nInfo:\n" +
+            print_msg = "Plazo fijo Realizado!\n\n-- Info --\n" +
                 "Capital Inicial: " + this.state.capitalInicial + "\n" + 
                 "Capital Final: " + this.state.capitalFinal.toString() + "\n" +
                 "Email: " + this.state.tiEmail + "\n" +
                 "CUIT: " + this.state.tiCUIT + "\n" +
                 "Moneda: " + this.state.moneda + "\n" +
-                "Dias: " + this.state.sDias.toString() + "\n";
+                "Dias: " + this.state.sDias.toString() + "\n" +
+                "Avisar por Email: " + this.state.swAvisarEmail.toString() +"\n";
         }
 
         this.setState({ tResultados: print_msg });
@@ -100,6 +101,7 @@ export default class AppBanco extends Component {
                     <TextInput
                         onChangeText={(text) => this.setState({tiEmail:text})}
                         value={this.state.tiEmail}
+                        keyboardType='email-address'
                     />
                     <Text>CUIT</Text>
                     <TextInput
@@ -124,6 +126,7 @@ export default class AppBanco extends Component {
                             () => { this.interesesUpdate(); }
                         )}
                         value={this.state.capitalInicial}
+                        keyboardType='number-pad'
                     />
                     <Text>Dias</Text>
                     <Slider
@@ -138,18 +141,22 @@ export default class AppBanco extends Component {
                     />
                     <Text>{this.state.sDias}{" días de plazo"}</Text>
                     <Text>{this.state.tIntereses}</Text>
-                    <View style={styles.firstComponent}>
+                    <View style={styles.horizontalComponent}>
                         <Text>Avisar por mail</Text>
                         <Switch
+                            style={{flex: 1}}
                             onValueChange={() => this.setState({swAvisarEmail: !this.state.swAvisarEmail})}
                             value={this.state.swAvisarEmail}
                         />
                     </View>
-                    <CheckBox 
-                        title='Acepto condiciones'
-                        value={this.state.chkCondiciones}
-                        onChange={this.checkBoxChange}
-                    />
+                    <View style={styles.horizontalComponent}>
+                        <CheckBox 
+                            title=''
+                            value={this.state.chkCondiciones}
+                            onChange={this.checkBoxChange}
+                        />
+                        <Text>Acepto Términos y Condiciones</Text>
+                    </View>
                     <Button 
                         title="Hacer Plazo Fijo"
                         disabled={!this.state.chkCondiciones}
@@ -163,7 +170,7 @@ export default class AppBanco extends Component {
 }
 
 var styles = StyleSheet.create({
-    firstComponent: {
+    horizontalComponent: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
