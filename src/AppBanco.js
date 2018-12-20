@@ -24,11 +24,20 @@ export default class AppBanco extends Component {
     }
 
     interesesUpdate() {
+
         var coin = "";
         if (this.state.moneda == 1) {
             coin = "USD";
         } else if (this.state.moneda == 2) {
             coin = "ARS";
+        }
+
+        if (!this.state.capitalInicial || parseFloat(this.state.capitalInicial) < 0.0) {
+            this.setState(
+                { capitalFinal: 0 },
+                () => { this.setState({ tIntereses: '0 ' + coin }); }
+            );
+            return;
         }
 
         var m = parseFloat(this.state.capitalInicial);
@@ -95,16 +104,18 @@ export default class AppBanco extends Component {
 
     render() {
         return (
-            <View>
+            <View style={styles.top}>
                 <ScrollView>
                     <Text>Correo Electronico</Text>
                     <TextInput
+                        underlineColorAndroid='black'
                         onChangeText={(text) => this.setState({tiEmail:text})}
                         value={this.state.tiEmail}
                         keyboardType='email-address'
                     />
                     <Text>CUIT</Text>
                     <TextInput
+                        underlineColorAndroid='black'
                         onChangeText={(text) => this.setState({tiCUIT:text})}
                         value={this.state.tiCUIT}
                     />
@@ -121,6 +132,7 @@ export default class AppBanco extends Component {
                     </Picker>
                     <Text>Monto</Text>
                     <TextInput
+                        underlineColorAndroid='black'
                         onChangeText={(text) => this.setState(
                             {capitalInicial:text},
                             () => { this.interesesUpdate(); }
@@ -140,7 +152,9 @@ export default class AppBanco extends Component {
                         value={this.state.sDias}
                     />
                     <Text>{this.state.sDias}{" días de plazo"}</Text>
-                    <Text>{this.state.tIntereses}</Text>
+                    <View style={styles.calculatedTotal}>
+                        <Text>{this.state.tIntereses}</Text>
+                    </View>
                     <View style={styles.horizontalComponent}>
                         <Text>Avisar por mail</Text>
                         <Switch
@@ -174,5 +188,15 @@ var styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    top: {
+        borderTopColor: 'black',
+        borderTopWidth: 10,
+    },
+    calculatedTotal: {
+        flex: 1,
+        alignItems: 'center',
+        borderColor: 'black',
+        borderWidth: 1,
     },
 });
